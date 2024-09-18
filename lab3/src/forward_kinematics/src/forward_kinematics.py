@@ -3,6 +3,8 @@
 import numpy as np
 import scipy as sp
 import kin_func_skeleton as kfs
+from sensor_msgs.msg import JointState
+import rospy
 
 def baxter_forward_kinematics_from_angles(joint_angles):
     """
@@ -46,6 +48,26 @@ def baxter_forward_kinematics_from_angles(joint_angles):
 
     # YOUR CODE HERE (Task 1)
 
+
+    #make empty array 4x4
+    res = np.eye(4)
+    xi_matrix = np.zeros([6,7])
+
+    for i in range(7):
+        v = np.cross(-ws[0:3, i], qs[0:3,i])
+        xi = np.hstack([v, ws[0:3, i]])
+        xi_matrix[:, i] = xi
+    
+    g = kfs.prod_exp(xi_matrix, joint_angles)
+        
+    g_st_0 = np.array([[0.0076, 0.0001, -1.0000, 0.7957],
+                    [-0.7040, 0.7102, -0.0053, .9965],
+                    [0.7102, 0.7040, 0.0055, .3058],
+                    [0, 0, 0, 1]])
+    
+    g = g @ g_st_0
+    return g
+
 def baxter_forward_kinematics_from_joint_state(joint_state):
     """
     Computes the orientation of the Baxter's left end-effector given the joint
@@ -60,9 +82,41 @@ def baxter_forward_kinematics_from_joint_state(joint_state):
     (4x4) np.ndarray: homogenous transformation matrix
     """
     
-    angles = np.zeros(7)
+    # angles = np.zeros(7)
 
     # YOUR CODE HERE (Task 2)
+    joint_state = joint_state.position
+    # s0, s1, e0, e1, w0, w1, w2
+    s0 = joint_state[4]
+    s1 = joint_state[5]
+    e0 = joint_state[2]
+    e1 = joint_state[3]
+    w0 = joint_state[6]
+    w1 = joint_state[7]
+    w2 = joint_state[8]
+    # s0 = joint_state.position['s0']
+    # s1 = joint_state.position['s1']
+    # e0 = joint_state['e0']
+    # e1 = joint_state['e1']
+    # w0 = joint_state['w0']
+    # w1 = joint_state['w1']
+    # w2 = joint_state['w2']
+    angles = [s0, s1, e0, e1, w0, w1, w2]
 
-    # END YOUR CODE HERE
     print(baxter_forward_kinematics_from_angles(angles))
+
+
+def listener():
+    rospy.Subscriber("robot/joint_states",JointState, baxter_forward_kinematics_from_joint_state)
+    rospy.spin()
+
+
+if __name__ == '__main__':
+
+    # Run this program as a new node in the ROS computation graph called
+    # /listener_<id>, where <id> is a randomly generated numeric string. This
+    # randomly generated name means we can start multiple copies of this node
+    # without having multiple nodes with the same name, which ROS doesn't allow.
+    rospy.init_node('forward_kinematics', anonymous=True)
+
+    listener()

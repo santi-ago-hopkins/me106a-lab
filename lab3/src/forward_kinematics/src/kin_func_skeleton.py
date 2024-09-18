@@ -104,7 +104,8 @@ def skew_3d(omega):
     omega_hat - (3,3) ndarray: the corresponding skew symmetric matrix
     """
 
-    # YOUR CODE HERE
+    return np.array([[0 , -omega[2], omega[1]], [omega[2], 0, -omega[0]], [-omega[1], omega[0], 0]])
+
 
 def rotation_3d(omega, theta):
     """
@@ -118,7 +119,12 @@ def rotation_3d(omega, theta):
     rot - (3,3) ndarray: the resulting rotation matrix
     """
 
-    # YOUR CODE HERE
+    omega = np.asarray(omega)
+    I = np.eye(3)
+    w_hat = skew_3d(omega)
+    w_norm = np.linalg.norm(omega) 
+    return I + (w_hat/w_norm)*np.sin(w_norm*theta) + ((w_hat @ w_hat)/(w_norm*w_norm))*(1-np.cos(w_norm*theta))
+
 
 def hat_3d(xi):
     """
@@ -131,7 +137,8 @@ def hat_3d(xi):
     xi_hat - (4,4) ndarray: the corresponding 4x4 matrix
     """
 
-    # YOUR CODE HERE
+    return np.array([[0, -xi[5], xi[4], xi[0]],  [xi[5], 0, -xi[3], xi[1]],  [-xi[4], xi[3], 0 , xi[2]],  [0,0,0,0]])
+
 
 def homog_3d(xi, theta):
     """
@@ -144,8 +151,22 @@ def homog_3d(xi, theta):
     Returns:
     g - (4,4) ndarary: the resulting homogeneous transformation matrix
     """
+    #calculations
+    omega = xi[3:]
+    v = xi[:3]
+    omega_norm = np.linalg.norm(omega)
+    topLeft = rotation_3d(omega,theta)
+    topRight = (1/(omega_norm**2)) * ((np.eye(3)- topLeft)@(skew_3d(omega)@v)+ (np.outer(omega, omega).dot(v) * theta))
+    topRight = topRight.reshape(-1,1)
+    bottom = np.array([0, 0 , 0, 1])
+    if np.all(omega == 0):
+        topLeft = np.eye(3)
+        topRight = v.reshape(-1,1) * theta
+    #stacking
+    res = np.hstack([topLeft, topRight])
+    res = np.vstack([res, bottom])
+    return res  
 
-    # YOUR CODE HERE
 
 
 def prod_exp(xi, theta):
@@ -160,8 +181,14 @@ def prod_exp(xi, theta):
     Returns:
     g - (4,4) ndarray: the resulting homogeneous transformation matrix
     """
-
-    # YOUR CODE HERE
+    #empty array
+    g = np.eye(4)
+    for i in range(xi.shape[1]):
+        twist = xi[:,i]
+        displacement =theta[i]
+        trans = homog_3d(twist, displacement)
+        g = g @ trans
+    return g
 
 #---------------------------------TESTING CODE---------------------------------
 #-------------------------DO NOT MODIFY ANYTHING BELOW HERE--------------------
