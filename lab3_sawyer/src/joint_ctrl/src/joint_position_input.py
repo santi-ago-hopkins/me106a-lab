@@ -24,6 +24,7 @@ import intera_interface
 import intera_external_devices
 
 from intera_interface import CHECK_VERSION
+import time
 
 
 def map_keyboard(side):
@@ -125,7 +126,10 @@ def getUserInput(side):
         joint_command = {joint_name: current_position + delta}
         print("Executing" + str(joint_command))
         limb.set_joint_position_speed(0.3)
-        limb.set_joint_positions(joint_command)
+        now = time.time()
+        future = now + 1
+        while time.time() < future:
+            limb.set_joint_positions(joint_command)
 
     #set gripper action
     def set_g(action):
@@ -140,19 +144,26 @@ def getUserInput(side):
     #get actual user input
     #add gripper to list if there's a gripper
     if has_gripper:
-        joints.add('gripper')
+        joints.append('gripper')
 
     #make empty dictionary
     joint_delta = {}
 
     #iterate over joint_names and ask for user input, add to dictionary
     for joint in joints:
-       joint_delta[joint] = Input(f'Delta for {joint}: ')
+        if joint == 'gripper':
+           joint_delta[joint] = str(input(f'Command for Gripper: '))
+        else:
+            joint_delta[joint] = int(input(f'Delta for {joint}: '))
 
 
     while not rospy.is_shutdown():
         for joint in joints: 
-            set_j(limb, joint, joint_delta[joint])
+            if joint == 'gripper':
+                set_g(joint_delta['gripper'])
+            else:
+                set_j(limb, joint, joint_delta[joint])
+                set_g(joint_delta['gripper'])
 
 def main():
     """RSDK Joint Position Example: Keyboard Control
