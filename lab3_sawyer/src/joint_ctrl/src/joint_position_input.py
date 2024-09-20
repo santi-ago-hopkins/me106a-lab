@@ -103,6 +103,57 @@ def map_keyboard(side):
                                        key=lambda x: x[1][2]):
                     print("  %s: %s" % (key, val[2]))
 
+def getUserInput(side):
+    #make limb object
+    limb = intera_interface.Limb(side)
+
+    #get joint names
+    joints = limb.joint_names()
+    
+    #check if there is gripper
+    try:
+        gripper = intera_interface.Gripper(side + '_gripper')
+    except:
+        has_gripper = False
+        rospy.loginfo("The electric gripper is not detected on the robot.")
+    else:
+        has_gripper = True
+
+    #set joint position by adding delta to joint name in specified limb
+    def set_j(limb, joint_name, delta):
+        current_position = limb.joint_angle(joint_name)
+        joint_command = {joint_name: current_position + delta}
+        print("Executing" + str(joint_command))
+        limb.set_joint_position_speed(0.3)
+        limb.set_joint_positions(joint_command)
+
+    #set gripper action
+    def set_g(action):
+        if has_gripper:
+            if action == "close":
+                gripper.close()
+            elif action == "open":
+                gripper.open()
+            elif action == "calibrate":
+                gripper.calibrate()
+
+    #get actual user input
+    #add gripper to list if there's a gripper
+    if has_gripper:
+        joints.add('gripper')
+
+    #make empty dictionary
+    joint_delta = {}
+
+    #iterate over joint_names and ask for user input, add to dictionary
+    for joint in joints:
+       joint_delta[joint] = Input(f'Delta for {joint}: ')
+
+
+    while not rospy.is_shutdown():
+        for joint in joints: 
+            set_j(limb, joint, joint_delta[joint])
+
 def main():
     """RSDK Joint Position Example: Keyboard Control
 
@@ -145,7 +196,8 @@ See help inside the example with the '?' key for key bindings.
 
     rospy.loginfo("Enabling robot...")
     rs.enable()
-    map_keyboard(args.limb)
+    # map_keyboard(args.limb)
+    getUserInput(args.limb)
     print("Done.")
 
 
