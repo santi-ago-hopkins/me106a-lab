@@ -16,10 +16,21 @@ def ik_service_client():
     pose_stamped.header = header
 
     # Set end effector position: YOUR CODE HERE
+    #prompt user to input (x,y,z)
+    pose_stamped.pose.position.x = float(input('x: '))
+    pose_stamped.pose.position.y = float(input('y: '))
+    pose_stamped.pose.position.z = float(input('z: '))
+
     
     # Set end effector quaternion: YOUR CODE HERE
+    pose_stamped.pose.orientation.x = 0.0
+    pose_stamped.pose.orientation.y = 1.0
+    pose_stamped.pose.orientation.z = 0.0
+    pose_stamped.pose.orientation.w = 0.0
+
 
     # Add desired pose for inverse kinematics
+    print(pose_stamped)
     ik_request.pose_stamp.append(pose_stamped)
     # Request inverse kinematics from base to "right_hand" link
     ik_request.tip_names.append('right_hand')
@@ -35,6 +46,7 @@ def ik_service_client():
 
     # Check if result valid, and type of seed ultimately used to get solution
     if (response.result_type[0] > 0):
+        print(response)
         rospy.loginfo("SUCCESS!")
         # Format solution into Limb API-compatible dictionary
         limb_joints = dict(list(zip(response.joints[0].name, response.joints[0].position)))

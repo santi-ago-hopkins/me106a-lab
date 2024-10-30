@@ -183,12 +183,14 @@ class LinearTrajectory(Trajectory):
         if time <= self.total_time / 2.0:
             # TODO: calculate the position of the end effector at time t, 
             # For the first half of the trajectory, maintain a constant acceleration
-            pos = ...
+            pos = self.start_position + 0.5 * self.acceleration * time**2
         else:
             # TODO: Calculate the position of the end effector at time t, 
             # For the second half of the trajectory, maintain a constant acceleration
             # Hint: Calculate the remaining distance to the goal position. 
-            pos = ...
+            new_time = time - (self.total_time/2)
+            pos = self.start_position + 0.5 * self.acceleration * (self.total_time/2)**2 + ((0.5 * -self.acceleration * (new_time))**2 + self.v_max * new_time)
+            print(pos)
         return np.hstack((pos, self.desired_orientation))
 
     def target_velocity(self, time):
@@ -214,13 +216,13 @@ class LinearTrajectory(Trajectory):
             # For the first half of the trajectory, we maintain a constant acceleration
 
             
-            linear_vel = ...
+            linear_vel = self.acceleration * time
         else:
             # TODO: start slowing the velocity down from the maximum one
             # For the second half of the trajectory, maintain a constant deceleration
 
-
-            linear_vel = ...
+            new_time = time - (self.total_time/2)
+            linear_vel = self.v_max - self.acceleration * new_time
         return np.hstack((linear_vel, np.zeros(3)))
 
 class CircularTrajectory(Trajectory):

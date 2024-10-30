@@ -28,13 +28,13 @@ def main():
         request.ik_request.pose_stamped.header.frame_id = "base"
         
         # Set the desired orientation for the end effector HERE
-        request.ik_request.pose_stamped.pose.position.x = 0.5
-        request.ik_request.pose_stamped.pose.position.y = 0.5
-        request.ik_request.pose_stamped.pose.position.z = 0.0        
-        request.ik_request.pose_stamped.pose.orientation.x = 0.0
-        request.ik_request.pose_stamped.pose.orientation.y = 1.0
-        request.ik_request.pose_stamped.pose.orientation.z = 0.0
-        request.ik_request.pose_stamped.pose.orientation.w = 0.0
+        request.ik_request.pose_stamped.pose.position.x = 0.577
+        request.ik_request.pose_stamped.pose.position.y = 0.532
+        request.ik_request.pose_stamped.pose.position.z = -0.171      
+        request.ik_request.pose_stamped.pose.orientation.x = 0
+        request.ik_request.pose_stamped.pose.orientation.y = -1
+        request.ik_request.pose_stamped.pose.orientation.z = 0
+        request.ik_request.pose_stamped.pose.orientation.w = 0 
         
         try:
             # Send the request to the service
