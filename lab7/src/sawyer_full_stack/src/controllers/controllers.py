@@ -398,7 +398,7 @@ class FeedforwardJointVelocityController(Controller):
         target_acceleration: 7x' ndarray of desired accelerations
         """
         # TODO: Implement Feedforward control
-        controller_velocity = ...
+        controller_velocity = target_velocity;
 
         self._limb.set_joint_velocities(joint_array_to_dict(controller_velocity, self._limb))
 
@@ -448,11 +448,22 @@ class PIDJointVelocityController(Controller):
         current_position = get_joint_positions(self._limb)
         current_velocity = get_joint_velocities(self._limb)
         
-        # TODO: implement PID control to set the joint velocities. 
+        # TODO: implement PID control to set the joint velocities.
 
+        # Calculate position error
+        error = target_position - current_position
 
+        # Update integral error
+        self.integ_error = self.Kw * self.integ_error + error
 
+        # Calculate derivative error
+        deriv_error = target_velocity - current_velocity
 
-        controller_velocity = ...
+        # Compute PID terms
+        p_term = self.Kp.dot(error)
+        i_term = self.Ki.dot(self.integ_error)
+        d_term = self.Kd.dot(deriv_error)
+
+        controller_velocity = target_velocity + p_term + i_term + d_term
 
         self._limb.set_joint_velocities(joint_array_to_dict(controller_velocity, self._limb))
